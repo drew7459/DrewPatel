@@ -1,38 +1,34 @@
 import dash
-from dash import Dash, html, dcc, callback, Output, Input, dash_table, State
+from dash import Dash, html, dcc, callback, Output, Input, dash_table, State, dash_table
 
 from neo4j import GraphDatabase
 
 from mysql_utils import get_university
+from neo4j_utils import getFaculty
+from mongodb_utils import getkeywords
 
 
-
-# neo_db = db = GraphDatabase.driver('bolt://127.0.0.1:7687')
+neo_db = db = GraphDatabase.driver('bolt://localhost:7687')
 
 app = Dash(__name__)
 
 app.layout = html.Div([
-    html.H1(children='Title of Dash App', style={'textAlign':'center'}),
-    dcc.Input(id='input'),
-    html.Button('Search', id='search_button'),
-    dash_table.DataTable(
-        columns = [{'name': 'University Name', 'id': 'name'}, {'name': 'University Id', 'id': 'id'}],
-        id='university_table'),
-    dcc.Textarea(id='tid')
+    html.Div(children='My First App with Data'),
+    html.Div([
+        dash_table.DataTable(
+            id='keywords-table',
+            columns=[{'name': i, 'id': i} for i in ['Keyword', 'Count']],
+            data=getkeywords(),
+            page_size=10
+        ),
+        dash_table.DataTable(
+            id='faculty-table',
+            columns=[{'name': i, 'id': i} for i in ['Faculty Name', 'KRC']],
+            data=getFaculty(),
+            page_size=10
+        )
+    ], style={'display': 'flex'}),
 ])
-
-@callback(
-    Output('university_table', 'data'),
-    Output('tid', 'value'),
-    State('input', 'value'),
-    Input('search_button', 'n_clicks')
-)
-def update_table(input_value, n_clicks):
-    if not input_value:
-        return dash.no_update
-    result = get_university(input_value)
-    print(result)
-    return result, 'search result for :' + input_value
 
 if __name__ == '__main__':
     app.run_server()
