@@ -20,6 +20,6 @@ Widgets:
 
 6 - Chart of Universities with the largest number of faculty working on "machine learning" 
 
-7 - Add new publication
+7 - Add new assistant professor
 
-8 - Add new professor
+8 - Add new publication
