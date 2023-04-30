@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 from neo4j import GraphDatabase
 from neo4j_utils import getFaculty
 
-from mysql_utils import get_university, get_faculty_counts, get_topFaculty, get_faculty_publications, get_favorites
+from mysql_utils import get_university, get_faculty_counts, get_topFaculty, get_faculty_publications, get_favorites, add_favorite
 from mongodb_utils import getkeywords
 
 neo_db = db = GraphDatabase.driver('bolt://localhost:7687')
@@ -30,6 +30,10 @@ faculty_counts_trace = go.Bar(x=universities, y=counts, name='Faculty Counts')
 # Get the data for the top faculty table
 top_faculty_data = get_topFaculty()
 top_faculty_data = [{'Faculty Name': row['name'].title(), 'KRC': row['KRC']} for row in top_faculty_data]
+
+favorite_data = get_favorites()
+favorite_data = [{'Name': row['name'].title(), 'Email': row['email']} for row in favorite_data]
+
 
 app.layout = html.Div([
     html.Div(children='UIUC Resarch Collaboration'),
@@ -78,6 +82,8 @@ app.layout = html.Div([
         html.H2('Faculty Search'),
         dcc.Input(id='faculty-name-input', type='text', placeholder='Enter faculty name'),
         html.Button('Submit', id='faculty-name-submit'),
+        html.Button('Add to Favorites', id='add-favorite-button'),
+        html.Div(id='add-favorite-output'),
         dash_table.DataTable(
             id='faculty-publications-table',
             columns=[{'name': i, 'id': i} for i in ['Title', 'Year', 'Citations']],
@@ -88,8 +94,8 @@ app.layout = html.Div([
         html.H2('Favorite Professors'),
         dash_table.DataTable(
             id='favorites-table',
-            columns=[{'name': i, 'id': i} for i in ['Name', 'Research Interest', 'Email']],
-            data=get_favorites(),
+            columns=[{'name': i, 'id': i} for i in ['Name', 'Email']],
+            data=favorite_data,
             page_size=10
         )
     ], style={'margin-top': '50px'}),
@@ -106,6 +112,23 @@ def update_faculty_publications_table(n_clicks, faculty_name):
     data = [{'Title': row['title'], 'Year': row['year'], 'Citations': row['num_citations']} for row in data]
 
     return data
+
+@app.callback(
+    [Output('add-favorite-output', 'children'),
+    Output('favorites-table', 'data')],
+    [Input('add-favorite-button', 'n_clicks')],
+    [State('faculty-name-input', 'value')]
+)
+def add_favorite_callback(n_clicks, name):
+    print("in function")
+    if n_clicks is None:
+        n_clicks = 0
+
+    if n_clicks > 0:
+        add_favorite(name)
+        favorite_data = get_favorites()
+        favorite_data = [{'Name': row['name'].title(), 'Email': row['email']} for row in favorite_data]
+        return f"{name} has been added to favorites.", favorite_data
 
 if __name__ == '__main__':
     app.run_server()

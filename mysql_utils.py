@@ -31,6 +31,7 @@ def get_faculty_counts():
     with db.cursor() as cursor:
         cursor.execute(query)
         result = cursor.fetchall()
+        print(result)
         return result
 
 def get_topFaculty():
@@ -69,16 +70,25 @@ def get_faculty_publications(faculty_name):
         return result
 
 def get_favorites():
-    query = "SELECT name, research_interest, email FROM faculty WHERE favorite = 1;"
+    query = "SELECT name, email FROM faculty WHERE favorite = 1 ORDER BY name ASC;"
 
     with db.cursor() as cursor:
         cursor.execute(query)
         result = cursor.fetchall()
+        print(result)
         return result
 
 def getFaculty():
-    query = "SELECT name, position, research_interest, email, phone, favorite FROM faculty;"
+    query = "SELECT name, position, email, phone, favorite FROM faculty;"
     with db.cursor() as cursor:
         cursor.execute(query)
         result = cursor.fetchall()
+        print(result)
         return result
+
+def add_favorite(name):
+    query = "UPDATE faculty SET favorite = 1 WHERE name = %s"
+    print("favorite call")
+    with db.cursor() as cursor:
+        cursor.execute(query, (name,))
+        db.commit()
