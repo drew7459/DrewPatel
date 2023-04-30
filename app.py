@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 from neo4j import GraphDatabase
 from neo4j_utils import getFaculty
 
-from mysql_utils import get_university, get_faculty_counts, get_topFaculty, get_faculty_publications, get_favorites, add_favorite
+from mysql_utils import get_university, get_faculty_counts, get_topFaculty, get_faculty_publications, get_favorites, add_favorite, delete_favorite
 from mongodb_utils import getkeywords
 
 neo_db = db = GraphDatabase.driver('bolt://localhost:7687')
@@ -34,6 +34,9 @@ top_faculty_data = [{'Faculty Name': row['name'].title(), 'KRC': row['KRC']} for
 favorite_data = get_favorites()
 favorite_data = [{'Name': row['name'].title(), 'Email': row['email']} for row in favorite_data]
 
+def create_delete_button_column():
+    return {'name': '', 'id': 'delete-button-column', 'presentation': 'markdown',
+            'compute': lambda row: f'[{row["id"]}]({row["id"]})'}
 
 app.layout = html.Div([
     html.Div(children='UIUC Resarch Collaboration'),
@@ -96,7 +99,10 @@ app.layout = html.Div([
             id='favorites-table',
             columns=[{'name': i, 'id': i} for i in ['Name', 'Email']],
             data=favorite_data,
-            page_size=10
+            page_size=10,
+            editable=True,
+            row_deletable=True,
+            style_cell_conditional=[{'if': {'column_id': 'Delete'}, 'textAlign': 'center'}]
         )
     ], style={'margin-top': '50px'}),
 ])
@@ -120,7 +126,6 @@ def update_faculty_publications_table(n_clicks, faculty_name):
     [State('faculty-name-input', 'value')]
 )
 def add_favorite_callback(n_clicks, name):
-    print("in function")
     if n_clicks is None:
         n_clicks = 0
 
@@ -129,6 +134,20 @@ def add_favorite_callback(n_clicks, name):
         favorite_data = get_favorites()
         favorite_data = [{'Name': row['name'].title(), 'Email': row['email']} for row in favorite_data]
         return f"{name} has been added to favorites.", favorite_data
+
+@app.callback(
+    Output('favorites-table', 'data'),
+    Input('favorites-table', 'data_previous'),
+    State('favorites-table', 'data'),
+)
+def update_database(previous_data, current_data):
+    print("in function")
+    if previous_data != current_data:
+        difference = list(set(previous_data) - set(current_data))
+        delete_favorite(difference[0])
+        return current_data
+    else:
+        return previous_data
 
 if __name__ == '__main__':
     app.run_server()
