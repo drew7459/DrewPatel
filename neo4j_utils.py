@@ -10,7 +10,7 @@ query = """
 MATCH (f:FACULTY)-[:AFFILIATION_WITH]->(i:INSTITUTE)
 WHERE i.name = 'University of illinois at Urbana Champaign'
 MATCH (f)-[:PUBLISH]->(p:PUBLICATION)-[lb:LABEL_BY]->(kw:KEYWORD)
-WHERE kw.name = 'machine learning'
+WHERE kw.name = 'data'
 RETURN f.name AS facultyName, sum(p.numCitations * lb.score) AS KRC
 ORDER BY KRC DESC
 LIMIT 10
