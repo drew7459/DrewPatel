@@ -19,3 +19,7 @@ Widgets:
 5 - Publications overtime graph for "machine learning" 
 
 6 - Chart of Universities with the largest number of faculty working on "machine learning" 
+
+7 - Add new publication
+
+8 - Add new professor
