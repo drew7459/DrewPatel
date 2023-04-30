@@ -25,7 +25,6 @@ def getFaculty():
                 'Faculty Name': record['facultyName'],
                 'KRC': record['KRC']
             })
-    print(result)
     driver.close()
     return result
 

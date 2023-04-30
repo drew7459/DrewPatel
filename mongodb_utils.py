@@ -33,7 +33,6 @@ def getkeywords():
             'Keyword': doc['keyword'],
             'Count': doc['count']
         })
-    print(result)
     return result
 
 
