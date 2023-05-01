@@ -15,7 +15,6 @@ pipeline = [
         }
     },
     { "$sort": { "count": -1 } },
-    { "$limit": 10 },
     {
         "$project": {
             "_id": 0,

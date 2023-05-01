@@ -20,7 +20,7 @@ counts = [row['Count'] for row in keywords_data]
 keywords_trace = go.Bar(x=keywords, y=counts, name='Keywords')
 
 # Get the data for the faculty counts bar chart
-faculty_counts_data = get_faculty_counts()
+faculty_counts_data = get_faculty_counts("machine learning")
 universities = [row['name'] for row in faculty_counts_data]
 counts = [row['num_faculty'] for row in faculty_counts_data]
 
@@ -39,15 +39,16 @@ def create_delete_button_column():
             'compute': lambda row: f'[{row["id"]}]({row["id"]})'}
 
 app.layout = html.Div([
-    html.Div(children='UIUC Resarch Collaboration'),
+    html.H1('Research Collaboration', style={'fontSize': 36, 'color': 'red'}),
     html.Div([
         html.Div([
             html.H2('Top Most Popular Keywords'),
             dash_table.DataTable(
                 id='keywords-table',
                 columns=[{'name': i, 'id': i} for i in ['Keyword', 'Count']],
-                data=keywords_data,
-                page_size=10
+                data=keywords_data,filter_action='native',
+                filter_query='',
+                page_size=9
             )
         ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
         html.Div([
@@ -58,41 +59,47 @@ app.layout = html.Div([
                 data=getFaculty(),
                 page_size=10
             )
-        ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-right': '50px'}),
-    ], style={'margin-top': '50px'}),
+        ], style={'width': '40%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-left': '50px'}),
+    ], style={'margin-top': '50px', 'display': 'flex', 'flex-wrap': 'wrap'}),
     html.Div([
-        html.H2('Top 10 Universities by Faculty Count in "Data" Keywords'),
+        html.H2('Top 10 Universities by Faculty Count by Keyword'),
+        html.Div([
+            dcc.Input(id='keywords-input', type='text', placeholder='Enter keywords'),
+            html.Button('Submit', id='keywords-submit'),
+        ]),
         dcc.Graph(
             id='faculty-counts-graph',
             figure={
                 'data': [faculty_counts_trace],
                 'layout': {
-                    'title': 'Top 10 Universities by Faculty Count in "Data" Keywords'
+                    'title': 'Top 10 Universities by Faculty Count in "machine learning" Keywords'
                 }
             }
         )
     ], style={'margin-top': '50px'}),
     html.Div([
-        html.H2('Top Faculty in "Data" Keywords'),
-        dash_table.DataTable(
-            id='top-faculty-table',
-            columns=[{'name': i, 'id': i} for i in ['Faculty Name', 'KRC']],
-            data=top_faculty_data,
-            page_size=10
-        )
-    ], style={'margin-top': '50px'}),
-    html.Div([
-        html.H2('Faculty Search'),
-        dcc.Input(id='faculty-name-input', type='text', placeholder='Enter faculty name'),
-        html.Button('Submit', id='faculty-name-submit'),
-        html.Button('Add to Favorites', id='add-favorite-button'),
-        html.Div(id='add-favorite-output'),
-        dash_table.DataTable(
-            id='faculty-publications-table',
-            columns=[{'name': i, 'id': i} for i in ['Title', 'Year', 'Citations']],
-            page_size=10
-        )
-    ], style={'margin-top': '50px'}),
+        html.Div([
+            html.H2('Top Faculty in "Data" Keywords'),
+            dash_table.DataTable(
+                id='top-faculty-table',
+                columns=[{'name': i, 'id': i} for i in ['Faculty Name', 'KRC']],
+                data=top_faculty_data,
+                page_size=10
+            )
+        ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+        html.Div([
+            html.H2('Faculty Search'),
+            dcc.Input(id='faculty-name-input', type='text', placeholder='Enter faculty name'),
+            html.Button('Submit', id='faculty-name-submit'),
+            html.Button('Add to Favorites', id='add-favorite-button'),
+            html.Div(id='add-favorite-output'),
+            dash_table.DataTable(
+                id='faculty-publications-table',
+                columns=[{'name': i, 'id': i} for i in ['Title', 'Year', 'Citations']],
+                page_size=10
+            )
+        ], style={'width': '40%', 'display': 'inline-block', 'vertical-align': 'top', 'margin-left': '50px'}),
+    ], style={'margin-top': '50px', 'display': 'flex', 'flex-wrap': 'wrap'}),
     html.Div([
         html.H2('Favorite Professors'),
         dash_table.DataTable(
@@ -125,29 +132,58 @@ def update_faculty_publications_table(n_clicks, faculty_name):
     [Input('add-favorite-button', 'n_clicks')],
     [State('faculty-name-input', 'value')]
 )
-def add_favorite_callback(n_clicks, name):
+def add_favorite_callback(n_clicks, faculty_name):
+    print("test")
     if n_clicks is None:
         n_clicks = 0
 
     if n_clicks > 0:
-        add_favorite(name)
+        add_favorite(faculty_name)
         favorite_data = get_favorites()
         favorite_data = [{'Name': row['name'].title(), 'Email': row['email']} for row in favorite_data]
-        return f"{name} has been added to favorites.", favorite_data
+        return f"{faculty_name} has been added to favorites.", favorite_data
 
+    return dash.no_update
+
+
+@app.callback(
+    Output('faculty-counts-graph', 'figure'),
+    [Input('keywords-submit', 'n_clicks')],
+    [State('keywords-input', 'value')])
+def update_faculty_counts_graph(n_clicks, keywords):
+    if n_clicks is None:
+        raise PreventUpdate
+
+    # Use the entered keywords to update the faculty counts graph
+    faculty_counts_data = get_faculty_counts(keywords)
+    universities = [row['name'] for row in faculty_counts_data]
+    counts = [row['num_faculty'] for row in faculty_counts_data]
+    faculty_counts_trace = go.Bar(x=universities, y=counts, name='Faculty Counts')
+
+    return {'data': [faculty_counts_trace],
+            'layout': {'title': f'Top 10 Universities by Faculty Count in "{keywords}" Keywords'}}
+
+"""
 @app.callback(
     Output('favorites-table', 'data'),
     Input('favorites-table', 'data_previous'),
     State('favorites-table', 'data'),
 )
 def update_database(previous_data, current_data):
-    print("in function")
-    if previous_data != current_data:
-        difference = list(set(previous_data) - set(current_data))
-        delete_favorite(difference[0])
+    if previous_data is None:
+        # Initial page load, do nothing
         return current_data
-    else:
-        return previous_data
+
+    previous_names = set(row['Name'] for row in previous_data)
+    current_names = set(row['Name'] for row in current_data)
+
+    deleted_names = previous_names - current_names
+    if deleted_names:
+        for name in deleted_names:
+            delete_favorite(name)
+
+    return current_data
+"""
 
 if __name__ == '__main__':
     app.run_server()
