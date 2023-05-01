@@ -15,7 +15,7 @@ A video demo of the application can be found at this link: Academic World Dashbo
 ## Installation:
 To install the application, follow these steps:
 
-Clone the repository to your local machine: git clone https://github.com/academicworld/dashboard.git
+Clone the repository to your local machine: git clone https://github.com/drew7459/DrewPatel.git
 
 Start the application by running: python app.py
 ## Usage:
