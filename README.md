@@ -10,7 +10,7 @@ The target users of this application are academic researchers, faculty members, 
 The objectives of this application are to provide users with an easy-to-use dashboard that allows them to search for and view information about faculty members, universities, and publications related to the field of data and machine learning. The application also enables users to add favorite professors, view the top universities, and view the top faculty members in the field of data and machine learning.
 
 ## Demo:
-A video demo of the application can be found at this link: Academic World Dashboard Demo
+A video demo of the application can be found at this link: https://mediaspace.illinois.edu/media/t/1_t5uykcpo
 
 ## Installation:
 To install the application, follow these steps:
